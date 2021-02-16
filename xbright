@@ -1,0 +1,71 @@
+#!/bin/bash
+
+#Author: Sexde
+
+#Set backlight directory
+
+backlightDir="/sys/class/backlight/"
+
+#Check if xbacklight is not installed
+
+if [ $(ls ${backlightDir} 2>/dev/null) == 0 ];then
+	
+	echo "xBacklight package required for running this script!"
+	exit
+
+fi
+
+#Set the arguments options
+
+ARG_1="+"
+
+ARG_2="-"
+
+#Set the offset
+
+OFFSET=15 
+
+#Get the GPU model name
+
+gpuModelName=$(ls ${backlightDir})
+
+#Get the current bright value
+
+currentValue=$(cat ${backlightDir}${gpuModelName}/brightness)
+
+#Get the Max and Min value
+
+MAX_VALUE=$(cat ${backlightDir}${gpuModelName}/max_brightness)
+MIN_VALUE=0
+
+#Check the arguments and execute the proper operation
+
+if [ "$1" == "$ARG_1" ];then
+	
+	currentValue=$((currentValue+OFFSET))
+
+elif [ "$1" == "$ARG_2" ];then
+	
+	currentValue=$((currentValue-OFFSET))
+
+else
+
+	echo "${1} is not a valid argument"
+	exit
+
+fi
+
+#The bright offset cannot be less than 0 or more than the max value.
+
+if [ "$currentValue" -lt "$MIN_VALUE" ] || [ "$currentValue" -gt "$MAX_VALUE" ];then
+
+	echo "You've reached the limit: ${currentValue}"
+	exit
+
+fi
+
+#Change the bright value then print the current and the max bright values
+	
+echo $currentValue > ${backlightDir}${gpuModelName}/brightness
+echo "Bright: ${currentValue}/${MAX_VALUE}"
+exit
